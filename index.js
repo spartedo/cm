@@ -26,17 +26,39 @@ function loadData() {
   return {films, artists};
 }
 
+let mimeTypes = {
+  "html":"text/html",
+  "png":"image/png",
+  "jpg":"image/jpg",
+  "css":"text/css",
+  "js":"text/javascript",
+  "rar": "application/x-rar-compressed",
+  "zip": "application/zip"
+};
+
 const http = require('http');
 const port = 3000;
 const requestHandler = (request, response) => {
     let requestedFile = decodeURI(request.url);
-    response.setHeader('Content-Type', 'text/html; charset=utf-8;');
+    if (requestedFile.slice(-1) === `/`) requestedFile += `/index1.html`;
+
+    let fileExtension = requestedFile.split(".");
+    let fileExt = fileExtension[fileExtension.length-1];
+    let contentType = 'application/octet-stream';
+    if (typeof mimeTypes[fileExt] !== "undefined") {
+      contentType = mimeTypes[fileExt];
+    }
+    console.log(fileExt);
+    console.log(contentType);
     console.log(requestedFile);
     try {
-      let fileContent = fs.readFileSync(`./web${requestedFile}`);
+      response.setHeader('Content-Type', `${contentType}; charset=utf-8`);
+      let readStream = fs.createReadStream(`./web${requestedFile}`);
+      readStream.pipe(response);
+      response.end();
       response.statusCode = 200;
-      response.end(fileContent);
     } catch (e) {
+      response.setHeader('Content-Type', `text/html; charset=utf-8`);
       response.statusCode = 404;
       response.end(`Запрашиваемого файла не существует`);
     }
