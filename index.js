@@ -36,6 +36,9 @@ let mimeTypes = {
   "zip": "application/zip"
 };
 
+/*function requestHandler(request, response){
+    return false;
+}*/
 const http = require('http');
 const port = 3000;
 const requestHandler = (request, response) => {
@@ -51,11 +54,13 @@ const requestHandler = (request, response) => {
     console.log(fileExt);
     console.log(contentType);
     console.log(requestedFile);
+
     try {
-      let fileSize = fs.statSync(`./web${requestedFile}`)[`bytes`];
-      response.setHeader('Content-Type', `${contentType}; charset=utf-8`);
-      response.setHeader('Content-Length', `${fileSize}; charset=utf-8`);
+      let fileSize = fs.statSync(`./web${requestedFile}`)[`size`];
       let readStream = fs.ReadStream(`./web${requestedFile}`);
+      response.setHeader('Content-Length', `${fileSize}`);
+      response.setHeader('Content-Type', `${contentType}; charset=utf-8`);
+      response.statusCode = 200;
 
       readStream.pipe(response);
       readStream.on('error', (e) => {
@@ -67,7 +72,6 @@ const requestHandler = (request, response) => {
       response.on('close', () => {
         readStream.destroy();
       });
-      response.statusCode = 200;
     } catch (e) {
       response.statusCode = 404;
       response.setHeader('Content-Type', `text/html; charset=utf-8`);
