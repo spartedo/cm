@@ -41,6 +41,12 @@ let mimeTypes = {
 }*/
 const http = require('http');
 const port = 3000;
+
+function requestBusinessHandler(request, response) {
+  console.log(request)
+  return false;
+}
+
 const requestHandler = (request, response) => {
     let requestedFile = decodeURI(request.url);
     if (requestedFile.slice(-1) === `/`) requestedFile += `/index1.html`;
@@ -55,6 +61,7 @@ const requestHandler = (request, response) => {
     console.log(contentType);
     console.log(requestedFile);
 
+    if (requestBusinessHandler(request, response)) return;
     try {
       let fileSize = fs.statSync(`./web${requestedFile}`)[`size`];
       let readStream = fs.ReadStream(`./web${requestedFile}`);
@@ -78,6 +85,7 @@ const requestHandler = (request, response) => {
       response.end(`Запрашиваемого файла не существует`);
     }
 }
+
 
 /*
 function saveData(films, artists) {
