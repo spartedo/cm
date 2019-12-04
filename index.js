@@ -26,15 +26,7 @@ let fs = require('fs');
   return {films, artists};
 }*/
 
-let mimeTypes = {
-  "html":"text/html",
-  "png":"image/png",
-  "jpg":"image/jpg",
-  "css":"text/css",
-  "js":"text/javascript",
-  "rar": "application/x-rar-compressed",
-  "zip": "application/zip"
-};
+let mimeTypes = require(`./web/Types.json`);
 
 /*function requestHandler(request, response){
     return false;
@@ -43,8 +35,15 @@ const http = require('http');
 const port = 3000;
 
 function requestBusinessHandler(request, response) {
-  console.log(request)
-  return false;
+  let requestedUrl = decodeURI(request.url);
+  let regexpApi = new RegExp("\/api", "g");
+  if (!regexpApi.test(requestedUrl)) return false
+  let businessResult = {result: null}
+  response.setHeader('Content-Type', 'application/json; charset=utf-8;');
+  response.statusCode = 200; {
+    response.end(JSON.stringify(businessResult));
+    return true
+  }
 }
 
 const requestHandler = (request, response) => {

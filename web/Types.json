@@ -1,0 +1,9 @@
+{
+  "html":"text/html",
+  "png":"image/png",
+  "jpg":"image/jpg",
+  "css":"text/css",
+  "js":"text/javascript",
+  "rar": "application/x-rar-compressed",
+  "zip": "application/zip"
+}
