@@ -1,36 +1,7 @@
 let fs = require('fs');
 
-/*(function loadData() {
-
-  let films_names;
-  let artists_names;
-  let films = [];
-  let artists = [];
-
-  try {
-    films_names = fs.readdirSync("./data/films");
-    artists_names = fs.readdirSync("./data/artists");
-    console.log(films_names, artists_names);
-  } catch (e) {
-    console.log("Проблемки");
-  }
-
-  for (let filename of films_names) {
-    let film = JSON.parse(fs.readFileSync(`./data/films/${filename}`));
-    films.push(film);
-  }
-  for (filename of artists_names) {
-    let artist = JSON.parse(fs.readFileSync(`./data/artists/${filename}`));
-    artists.push(artist);
-  }
-  return {films, artists};
-}*/
-
 let mimeTypes = require(`./web/Types.json`);
 
-/*function requestHandler(request, response){
-    return false;
-}*/
 const http = require('http');
 const port = 3000;
 
@@ -43,6 +14,11 @@ function requestBusinessHandler(request, response) {
   response.statusCode = 200;
   response.end(JSON.stringify(businessResult));
   return true
+}
+
+function requestAuthorizationHandler(request, response) {
+  let requestedUrl = decodeURI(request.url);
+  let regexpApi = new RegExp("\^/api/auth", "g");
 }
 
 const requestHandler = (request, response) => {
@@ -60,6 +36,7 @@ const requestHandler = (request, response) => {
     console.log(requestedFile);
 
     if (requestBusinessHandler(request, response)) return;
+    if (requestAuthorizationHandler(request, response)) return;
     try {
       let fileSize = fs.statSync(`./web${requestedFile}`)[`size`];
       let readStream = fs.ReadStream(`./web${requestedFile}`);
