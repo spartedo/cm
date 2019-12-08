@@ -5,20 +5,33 @@ let mimeTypes = require(`./web/Types.json`);
 const http = require('http');
 const port = 3000;
 
-function requestBusinessHandler(request, response) {
+/*function requestBusinessHandler(request, response) {
   let requestedUrl = decodeURI(request.url);
   let regexpApi = new RegExp("\^/api", "g");
   if (!regexpApi.test(requestedUrl)) return false
   let businessResult = {result: null}
-  response.setHeader('Content-Type', 'application/json; charset=utf-8;');
+  response.setHeader('Content-Type', 'application/json');
   response.statusCode = 200;
   response.end(JSON.stringify(businessResult));
   return true
-}
+}*/
 
 function requestAuthorizationHandler(request, response) {
   let requestedUrl = decodeURI(request.url);
-  let regexpApi = new RegExp("\^/api/auth", "g");
+  let regexpApi = new RegExp("\^/api/auth/spartedo", "g");
+  if (!regexpApi.test(requestedUrl)) return false
+  try {
+    let draftResult = fs.readFileSync(`./data/profiles/spartedo.json`);
+    //let authResult = {result: true}
+    response.setHeader('Content-Type', 'application/json');
+    response.statusCode = 200;
+    response.end(JSON.stringify(draftResult));
+  } catch (e) {
+    let authResult = {result: false}
+    response.setHeader('Content-Type', 'application/json');
+    response.statusCode = 204;
+    response.end(JSON.stringify(authResult));
+  }
 }
 
 const requestHandler = (request, response) => {
@@ -35,7 +48,7 @@ const requestHandler = (request, response) => {
     console.log(contentType);
     console.log(requestedFile);
 
-    if (requestBusinessHandler(request, response)) return;
+    //if (requestBusinessHandler(request, response)) return;
     if (requestAuthorizationHandler(request, response)) return;
     try {
       let fileSize = fs.statSync(`./web${requestedFile}`)[`size`];
@@ -55,8 +68,8 @@ const requestHandler = (request, response) => {
         readStream.destroy();
       });
     } catch (e) {
-      response.statusCode = 404;
       response.setHeader('Content-Type', `text/html; charset=utf-8`);
+      response.statusCode = 404;
       response.end(`Запрашиваемого файла не существует`);
     }
 }
