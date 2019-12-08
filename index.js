@@ -36,14 +36,13 @@ const port = 3000;
 
 function requestBusinessHandler(request, response) {
   let requestedUrl = decodeURI(request.url);
-  let regexpApi = new RegExp("\/api", "g");
+  let regexpApi = new RegExp("\^/api", "g");
   if (!regexpApi.test(requestedUrl)) return false
   let businessResult = {result: null}
   response.setHeader('Content-Type', 'application/json; charset=utf-8;');
-  response.statusCode = 200; {
-    response.end(JSON.stringify(businessResult));
-    return true
-  }
+  response.statusCode = 200;
+  response.end(JSON.stringify(businessResult));
+  return true
 }
 
 const requestHandler = (request, response) => {
