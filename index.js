@@ -18,20 +18,40 @@ const port = 3000;
 
 function requestAuthorizationHandler(request, response) {
   let requestedUrl = decodeURI(request.url);
-  let regexpApi = new RegExp("\^/api/auth/spartedo", "g");
-  if (!regexpApi.test(requestedUrl)) return false
-  try {
-    let draftResult = fs.readFileSync(`./data/profiles/spartedo.json`);
-    //let authResult = {result: true}
+  let regexpApi = new RegExp("\^/api/auth", "g");
+  if (!regexpApi.test(requestedUrl)) return false;
+  let authResult = { result: false };
+  let requestParams = parseRequestParameters(requestedUrl);
+  console.log(requestParams);
+  fs.readFile(`./data/profiles/${requestParams.username}.json`, 'utf-8', (e, data) => {
     response.setHeader('Content-Type', 'application/json');
-    response.statusCode = 200;
-    response.end(JSON.stringify(draftResult));
-  } catch (e) {
-    let authResult = {result: false}
-    response.setHeader('Content-Type', 'application/json');
-    response.statusCode = 204;
-    response.end(JSON.stringify(authResult));
-  }
+    if (e) {
+      response.statusCode = 401;
+      response.end(JSON.stringify(authResult));
+    } else {
+      let userData = JSON.parse(data);
+      if (userData.account.password === requestParams.password) {
+        response.statusCode = 200;
+        authResult.result = true;
+      } else {
+        response.statusCode = 401;
+      }
+      response.end(JSON.stringify(authResult));
+    }
+  });
+  return true;
+}
+
+function parseRequestParameters(uri) {
+  result = {}
+  let [address, query] = uri.split('?')
+  console.log(query);
+  if (query)
+    for (keyvalue in query.split('&')) {
+      let [key, value] = keyvalue.split('=')
+      result[key] = value
+    }
+  return result;
 }
 
 const requestHandler = (request, response) => {
@@ -46,7 +66,7 @@ const requestHandler = (request, response) => {
     }
     console.log(fileExt);
     console.log(contentType);
-    console.log(requestedFile);
+    //console.log(requestedFile);
 
     //if (requestBusinessHandler(request, response)) return;
     if (requestAuthorizationHandler(request, response)) return;
