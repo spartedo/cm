@@ -5,23 +5,29 @@ let mimeTypes = require(`./web/Types.json`);
 const http = require('http');
 const port = 3000;
 
-/*function requestBusinessHandler(request, response) {
-  let requestedUrl = decodeURI(request.url);
-  let regexpApi = new RegExp("\^/api", "g");
-  if (!regexpApi.test(requestedUrl)) return false
+function requestBusinessHandler(request, response, requestedFile) {
   let businessResult = {result: null}
   response.setHeader('Content-Type', 'application/json');
   response.statusCode = 200;
   response.end(JSON.stringify(businessResult));
   return true
-}*/
+}
 
-function requestAuthorizationHandler(request, response) {
-  let requestedUrl = decodeURI(request.url);
-  let regexpApi = new RegExp("\^/api/auth", "g");
-  if (!regexpApi.test(requestedUrl)) return false;
+function parseRequestParameters(uri) {
+  result = {}
+  let query = uri.split('?')[1]
+  if (query)
+    for (keyvalue of query.split('&')) {
+      let [key, value] = keyvalue.split('=')
+      result[key] = value
+      console.log(key, value);
+    }
+  return result;
+}
+
+function requestAuthorizationHandler(request, response, requestedFile) {
   let authResult = { result: false };
-  let requestParams = parseRequestParameters(requestedUrl);
+  let requestParams = parseRequestParameters(requestedFile);
   console.log(requestParams);
   fs.readFile(`./data/profiles/${requestParams.username}.json`, 'utf-8', (e, data) => {
     response.setHeader('Content-Type', 'application/json');
@@ -39,19 +45,23 @@ function requestAuthorizationHandler(request, response) {
       response.end(JSON.stringify(authResult));
     }
   });
-  return true;
 }
 
-function parseRequestParameters(uri) {
-  result = {}
-  let [address, query] = uri.split('?')
-  console.log(query);
-  if (query)
-    for (keyvalue in query.split('&')) {
-      let [key, value] = keyvalue.split('=')
-      result[key] = value
+
+
+function router(request, response, requestedFile) {
+  let urlData = [
+    { pattern: /^\/api$/, function: requestBusinessHandler },
+    { pattern: /^\/api\/auth/, function: requestAuthorizationHandler }
+  ]
+  for (value of urlData) {
+    console.log(`${value.pattern} vs ${requestedFile} + ${value.pattern.test(requestedFile)}`);
+    if (value.pattern.test(requestedFile)) {
+      value.function(request, response, requestedFile);
+      return true;
     }
-  return result;
+  }
+  return false;
 }
 
 const requestHandler = (request, response) => {
@@ -69,7 +79,8 @@ const requestHandler = (request, response) => {
     //console.log(requestedFile);
 
     //if (requestBusinessHandler(request, response)) return;
-    if (requestAuthorizationHandler(request, response)) return;
+    //if (requestAuthorizationHandler(request, response)) return;
+    if (router(request, response, requestedFile)) return;
     try {
       let fileSize = fs.statSync(`./web${requestedFile}`)[`size`];
       let readStream = fs.ReadStream(`./web${requestedFile}`);
