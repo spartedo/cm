@@ -25,7 +25,29 @@ function parseRequestParameters(uri) {
   return result;
 }
 
-function requestAuthorizationHandler(request, response, requestedFile) {
+
+let data = "";
+request.on('data', function(chunk) {data += chunk.toString()});
+
+request.on('end', function() {
+  response.setHeader('Content-Type', 'application/json');
+  if (data !== '') {
+    let authData = JSON.parse(getAuthorizationData(data));
+    console.log(authData);
+    if (authData !== '') {
+      if (router(request, response, requestedFile, authData)) return;
+      response.StatusCode = 200;
+    } else {
+      response.statusCode = 404;
+      response.end();
+    }
+  } else {
+    response.statusCode = 404;
+    response.end();
+  }
+});
+
+function requestAuthorizationHandler(request, response, requestedFile, authData) {
   let authResult = { result: false };
   let requestParams = parseRequestParameters(requestedFile);
   console.log(requestParams);
